@@ -2,8 +2,9 @@
 
 ### A computational methodology for frame analysis in contested policy spaces
 
-**Version:** v0.8 Beta · **Status:** Experimental · **Released:** April 2026
+**Version:** v0.9 Beta · **Status:** Experimental · **Released:** April 2026
 
+The v0.9 specification documents the methodology as implemented in the current beta. The v0.8 document is retained as the pre-implementation baseline for version control purposes.
 ---
 
 ## What is Correlating Resonance?
