@@ -26,7 +26,7 @@ The application operationalises the methodology as a four-phase browser-based to
 
 **Live tool:** [https://giobono.github.io/correlating-resonance/app/](https://giobono.github.io/correlating-resonance/app/)
 
-> **You will need an Anthropic API key to use the tool.** See [Getting an API key](#getting-an-api-key) below.
+> **You will need an Anthropic API key to use the tool.** See [Getting an API key](#getting-an-api-key) below. For access to a working copy with sample data contact the author. 
 
 ### The four phases
 
