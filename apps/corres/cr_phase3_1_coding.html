@@ -6,6 +6,7 @@
 <title>Correlating Resonance — Phase 3.1: Corpus Coding</title>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="config.js"></script>
 <style>
   :root {
     --ink: #1a1814;
@@ -549,7 +550,6 @@
 </div>
 
 <script>
-const API_KEY  = 'YOUR_API_KEY_HERE';
 const MODEL    = 'claude-sonnet-4-20250514';
 
 // ── State ────────────────────────────────────────────────────────────
@@ -1250,29 +1250,7 @@ Read the PDF document above carefully and code it against every concept in the t
     }
   ];
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userContent }]
-    })
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `API error ${res.status}`);
-  }
-
-  const data   = await res.json();
-  const text   = data.content.map(b => b.text || '').join('');
+  const text   = await callAPI(systemPrompt, userContent, 4096);
   const parsed = repairJSON(text);
 
   const scores = {};
@@ -1319,24 +1297,43 @@ function repairJSON(raw) {
   throw new Error('Could not parse JSON response');
 }
 
+// ── API call ────────────────────────────────────────────────────────
 async function callAPI(system, user, maxTokens = 4096) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const cfg = window.CORRES_CONFIG;
+  if (!cfg || !cfg.apiBase) {
+    throw new Error('CORRES_CONFIG not loaded — check config.js is deployed');
+  }
+
+  const requestId = (crypto.randomUUID && crypto.randomUUID()) ||
+                    (Date.now() + '-' + Math.random().toString(36).slice(2));
+
+  const res = await fetch(`${cfg.apiBase}/v1/corres/llm/messages`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+      'X-Request-Id': requestId,
     },
-    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] })
+    body: JSON.stringify({
+      system,
+      user,
+      max_tokens:    maxTokens,
+      pinned_model:  MODEL,
+    }),
   });
+
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `API error ${res.status}`);
+    let detail = res.statusText;
+    try {
+      const err = await res.json();
+      detail = err?.detail?.message || err?.error?.message || detail;
+    } catch (_) { /* keep statusText */ }
+    throw new Error(`API error ${res.status}: ${detail}`);
   }
+
   const data = await res.json();
-  return data.content.map(b => b.text || '').join('');
+  return data.text;
 }
+
 
 function csvCell(val) {
   const s = String(val || '');

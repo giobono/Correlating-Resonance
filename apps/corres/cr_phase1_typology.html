@@ -6,6 +6,7 @@
 <title>Correlating Resonance — Phase 1: Typology Development</title>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="config.js"></script>
 <style>
   :root {
     --ink: #1a1814;
@@ -685,7 +686,6 @@
 
 <script>
 // ── Config ─────────────────────────────────────────────────────────
-const API_KEY = 'YOUR_API_KEY_HERE';
 const MODEL   = 'claude-sonnet-4-20250514';
 const MAX_DOCS = 5;
 
@@ -1069,36 +1069,47 @@ Return ONLY a valid JSON array:
 
   const user = `Consolidate these term lists into a single unified candidate term list:\n\n${docSummaries}`;
 
-  const response = await callAPI(system, user, 6000);
+  const response = await callAPI(system, user, 4096);
   return repairJSON(response);
 }
 
 // ── API call ────────────────────────────────────────────────────────
 async function callAPI(system, user, maxTokens = 3000) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const cfg = window.CORRES_CONFIG;
+  if (!cfg || !cfg.apiBase) {
+    throw new Error('CORRES_CONFIG not loaded — check config.js is deployed');
+  }
+
+  const requestId = (crypto.randomUUID && crypto.randomUUID()) ||
+                    (Date.now() + '-' + Math.random().toString(36).slice(2));
+
+  const res = await fetch(`${cfg.apiBase}/v1/corres/llm/messages`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+      'X-Request-Id': requestId,
     },
     body: JSON.stringify({
-      model: MODEL,
-      max_tokens: maxTokens,
       system,
-      messages: [{ role: 'user', content: user }]
-    })
+      user,
+      max_tokens:    maxTokens,
+      pinned_model:  MODEL,
+    }),
   });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error?.message || `API error ${response.status}`);
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const err = await res.json();
+      detail = err?.detail?.message || err?.error?.message || detail;
+    } catch (_) { /* keep statusText */ }
+    throw new Error(`API error ${res.status}: ${detail}`);
   }
 
-  const data = await response.json();
-  return data.content.map(b => b.text || '').join('');
+  const data = await res.json();
+  return data.text;
 }
+
 
 // ── Results display ─────────────────────────────────────────────────
 function showResults(terms) {
