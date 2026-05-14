@@ -1,2 +1,4 @@
 # ArtIE project-specific
 config.js
+apps/config.js
+apps/corres/config.js
