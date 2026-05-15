@@ -340,3 +340,66 @@ header {
   margin-bottom: 1.2rem;
   max-width: 60ch;
 }
+  .nav-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem 4rem 3rem;
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+  }
+
+  .nav-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+  }
+
+  .nav-eyebrow::before {
+    content: '';
+    width: 2rem;
+    height: 1px;
+    color:#5a1010;
+    background: var(--accent);
+  }
+
+  .nav-title {
+    font-family: var(--cond);
+    font-weight: 300;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 0.0em;
+  }
+
+  .nav-title em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent);
+  }
+
+  .nav-subtitle {
+    font-family: var(--cond);
+    font-weight: 200;
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    color: var(--ink-mid);
+    letter-spacing: 0.02em;
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+
+  .nav-description {
+    font-size: 1.05rem;
+    color: var(--ink-mid);
+    max-width: 640px;
+    line-height: 1.75;
+    margin-bottom: 3rem;
+  }

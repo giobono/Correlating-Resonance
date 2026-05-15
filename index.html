@@ -1,340 +1,221 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Correlating Resonance — Gateway to Ebono Institutes Artificial Intelligence for academic research</title>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=JetBrains+Mono:wght@400;500&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --ink: #1a1814;
-    --ink-mid: #4a4640;
-    --ink-light: #9a9490;
-    --paper: #f7f4ef;
-    --paper-mid: #ede9e2;
-    --paper-dark: #ddd8cf;
-    --accent: #8b3a2a;
-    --accent-light: #c4735f;
-    --accent-dim: #f0e0da;
-    --rule: #d0cbc2;
-    --mono: 'JetBrains Mono', monospace;
-    --serif: 'Spectral', Georgia, serif;
-    --cond: 'Barlow Condensed', sans-serif;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--serif);
-    line-height: 1.7;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ── Grain overlay ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 100;
-    opacity: 0.6;
-  }
-
-  /* ── Hero ── */
-  .hero {
-    flex: 1;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    border-bottom: 2px solid var(--ink);
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Manuscript rule lines */
-  .hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent 39px,
-      var(--rule) 39px,
-      var(--rule) 40px
-    );
-    opacity: 0.35;
-    pointer-events: none;
-  }
-
-  .hero-nav {
-    padding: 2rem 4rem;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    position: relative;
-    z-index: 2;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .nav-wordmark {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-light);
-  }
-
-  .nav-wordmark em {
-    font-style: normal;
-    color: var(--accent);
-  }
-
-  .nav-meta {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    color: var(--ink-light);
-    letter-spacing: 0.08em;
-  }
-
-  .hero-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 5rem 4rem 4rem;
-    position: relative;
-    z-index: 2;
-    max-width: 900px;
-  }
-
-  .hero-eyebrow {
-    font-family: var(--mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .hero-eyebrow::before {
-    content: '';
-    width: 2rem;
-    height: 1px;
-    background: var(--accent);
-  }
-
-  .hero-title {
-    font-family: var(--cond);
-    font-weight: 300;
-    font-size: clamp(3.5rem, 8vw, 7rem);
-    line-height: 0.95;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    margin-bottom: 0.15em;
-  }
-
-  .hero-title em {
-    font-style: italic;
-    font-weight: 300;
-    color: var(--accent);
-  }
-
-  .hero-subtitle {
-    font-family: var(--cond);
-    font-weight: 300;
-    font-size: clamp(1.4rem, 3vw, 2rem);
-    color: var(--ink-mid);
-    letter-spacing: 0.02em;
-    margin-bottom: 2.5rem;
-    font-style: italic;
-  }
-
-  .hero-description {
-    font-size: 1.05rem;
-    color: var(--ink-mid);
-    max-width: 640px;
-    line-height: 1.75;
-    margin-bottom: 1.25rem;
-  }
-
-  .hero-description strong {
-    color: var(--ink);
-    font-weight: 600;
-  }
-
-  .hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 2rem;
-    margin-top: 2rem;
-  }
-
-  .hero-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: var(--ink);
-    color: var(--paper);
-    text-decoration: none;
-    padding: 0.85rem 2rem;
-    font-family: var(--cond);
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    transition: background 0.2s, gap 0.2s;
-    border-radius: 2px;
-  }
-
-  .hero-cta:hover { background: var(--accent); gap: 1.25rem; }
-
-  .hero-cta-arrow { font-size: 1.1rem; }
-
-  .hero-secondary {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .hero-secondary a {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    color: var(--ink-mid);
-    text-decoration: none;
-    border-bottom: 1px solid var(--rule);
-    padding-bottom: 0.15rem;
-    transition: color 0.2s, border-color 0.2s;
-    width: fit-content;
-  }
-
-  .hero-secondary a:hover {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-
-  .hero-footer {
-    padding: 1.5rem 4rem;
-    border-top: 1px solid var(--rule);
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 3rem;
-    position: relative;
-    z-index: 2;
-    flex-wrap: wrap;
-  }
-
-  .hero-footer-label {
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-light);
-  }
-
-  /* ── Footer ── */
-  footer {
-    padding: 2rem 4rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 1rem;
-    background: var(--paper);
-    position: relative;
-    z-index: 2;
-  }
-
-  .footer-wordmark {
-    font-family: var(--cond);
-    font-weight: 600;
-    font-size: 1.1rem;
-    letter-spacing: 0.04em;
-    color: var(--ink);
-  }
-
-  .footer-meta {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    color: var(--ink-light);
-  }
-
-  /* ── Responsive ── */
-  @media (max-width: 720px) {
-    .hero-nav,
-    .hero-body,
-    .hero-footer,
-    footer {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-    .hero-actions { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
-  }
-</style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Correlating Resonance — Frame Analysis Methodology</title>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Barlow+Condensed:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="/edu_common.js"></script>
+<link href="/edu_hero.css" rel="stylesheet"/>
+<link href="/edu_common.css" rel="stylesheet"/>
 </head>
 <body>
-
-<div class="hero">
-
-  <!-- Top nav -->
-  <div class="hero-nav">
-    <div class="nav-wordmark">Correlating <em>Resonance</em></div>
-    <div class="nav-meta">github source v0.9.1</div>
-  </div>
-
-  <!-- Hero body -->
-  <div class="hero-body">
-    <div class="hero-eyebrow">The Ebono Institute app for academic research</div>
-    <h1 class="hero-title">Correlating <em>Resonance</em></h1>
-    <p class="hero-subtitle">You have reached the stable working application</p>
-
-    <p class="hero-description">
-      Various versions are available from the public source repository on GitHub.
-
+<!-- <div id="edu-header" class="cr-nav"></div> -->
+ <!-- ── Hero ── -->
+<section class="hero">
+<div class="hero-body">
+<div class="hero-eyebrow">Computational Frame Analysis</div>
+<h1 class="hero-title">Correlating<br/><em>Resonance</em></h1>
+<p class="hero-subtitle">Identifying frames of reference in contested policy spaces</p>
+<p class="hero-description">
+      A structured methodology for revealing the conceptual configurations that underpin conflicting positions within complex or wicked problems. Apply it to any corpus of policy texts to map what different stakeholders agree on, what divides them, and where common ground exists.
     </p>
-    <p class="hero-description">
-      To use the methodology, visit the stable working version at <strong>https://edu.ebono.com.au/corres</strong>. The source code, methodology specification, and version history are available at <a href="https://github.com/giobono/correlating-resonance">Github</a> for inspection.
-    </p>
-  <p class="hero-description">
-      To test the current beta version of the methodology, visit <strong>edu.ebono.au/apps/corres</strong>.
-    </p>
-    <div class="hero-actions">
-      <a href="apps/corres/" class="hero-cta">
-        Open the latest beta application
-        <span class="hero-cta-arrow">→</span>
-      </a>
-      <div class="hero-secondary">
-        <a href="https://github.com/giobono/correlating-resonance/tree/main/docs">Methodology specification ↗</a>
-        <a href="https://github.com/giobono/correlating-resonance">Source repository ↗</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hero footer strip -->
-  <div class="hero-footer">
-    <div class="hero-footer-label">No API key configured at this deployment</div>
-    <div class="hero-footer-label">Redirect target — ebono.net/corres</div>
-  </div>
-
+<a class="hero-cta" style="color:gold " href="#phases">
+      Start here<span class="hero-cta-arrow">→</span>
+</a>
 </div>
-
-<!-- Page footer -->
+<!-- ── Phase cards ── -->
+<section class="phases" id="phases">
+<div class="phases-header">
+<div class="phases-header-label">The process</div>
+<h2><span>Three phases, each building on the last</span><br/>
+<span style="color:brown;">Phase 3 clusters your data</span></h2>
+</div>
+<div class="phases-grid">
+<!-- Phase 1 -->
+<a class="phase-card" href="/apps/gioianie/index.html">
+<div class="phase-card-top">
+  <div class="phase-num">1</div>
+  <div class="phase-card-meta">
+  <div class="phase-tag-label">Phase One</div>
+  <div class="phase-name">Typology Development</div>
+</div>
+</div>
+<div class="phase-card-body">
+<p class="phase-desc">
+      <em>Start here</em> if you have a corpus of documents and want to code them for analysis. This process uses open coding under your guidance.      
+</p>
+<ul class="phase-steps">
+<li>Upload 5 random corpus documents</li>
+<li>The application extracts candidate concepts through open coding</li>
+</ul>
+</div>
+<div class="phase-card-top">
+  <div class="phase-num">&nbsp;</div>
+  <div class="phase-card-meta">
+  <div class="phase-name">Saturation Check</div>
+  <ul class="phase-steps">
+  <li>Gradually refine your typology</li>
+  <li>Check new documents for new codes</li>
+  <li>Edit definitions, merge duplicates, add synonyms</li>
+  </ul>
+</div>
+</div>
+<div class="phase-card-footer">
+<div class="phase-io">
+<span class="io-chip io-in">5 × PDF or TXT</span>
+<span class="io-chip io-out">Typology CSV</span>
+</div>
+<span class="phase-link-arrow">→</span>
+</div>
+</a>
+<!-- Phase 1.b -->
+<!--<a class="phase-card" href="/apps/gioianie/iterate.html">
+<div class="phase-card-top">
+<div class="phase-num">2</div>
+<div class="phase-card-meta">
+<div class="phase-tag-label">Phase Two</div>
+<div class="phase-name">Saturation Check</div>
+</div>
+</div>
+<div class="phase-card-body">
+<p class="phase-desc">
+          Upload your revised typology and a new batch of documents (5–10% of the corpus). Each document is coded against the fixed typology in an isolated session. Any content not captured by existing concepts is flagged for researcher review. Repeat until the typology holds without new concepts emerging.
+        </p>
+<ul class="phase-steps">
+<li>Upload revised typology CSV</li>
+<li>Upload new document batch</li>
+<li>Code each document in isolation</li>
+<li>Review flagged new concept candidates</li>
+<li>Update typology and repeat if needed</li>
+</ul>
+</div>
+<div class="phase-card-footer">
+<div class="phase-io">
+<span class="io-chip io-in">Typology CSV</span>
+<span class="io-chip io-in">Document batch</span>
+<span class="io-chip io-out">Saturated typology</span>
+</div>
+<span class="phase-link-arrow">→</span>
+</div>
+</a>
+-->
+<!-- Phase 2 -->
+<a class="phase-card" href="/apps/sanzognie/">
+<div class="phase-card-top">
+<div class="phase-num">2</div>
+<div class="phase-card-meta">
+<div class="phase-tag-label">Phase Two</div>
+<div class="phase-name">Full Corpus Coding</div>
+</div>
+</div>
+<div class="phase-card-body">
+<p class="phase-desc">
+          <em>Start here</em> if you have a typology that you want to apply to a new corpus of documents. Documents are processed in configurable batches with automatic checkpoint exports.
+</p>
+<ul class="phase-steps">
+<li>Upload a complete typology CSV</li>
+<li>Upload full corpus (folder or multi-select)</li>
+<li>Review coding and options</li>
+<li>Export complete DTM for review</li>
+</ul>
+</div>
+<div class="phase-card-footer">
+<div class="phase-io">
+<span class="io-chip io-in">Final typology</span>
+<span class="io-chip io-in">Full corpus</span>
+<span class="io-chip io-out">DTM CSV</span>
+</div>
+<span class="phase-link-arrow">→</span>
+</div>
+</a>
+<!-- Phase 3 -->
+<a class="phase-card" href="/apps/corres/">
+  <div class="phase-card-top">
+  <div class="phase-num">3</div>
+  <div class="phase-card-meta">
+  <div class="phase-tag-label">Phase Three</div>
+  <div class="phase-name">Cluster Analysis</div>
+  </div>
+  </div>
+  <div class="phase-card-body">
+  <p class="phase-desc">
+            <em>Start here</em> if you have a list of codes against document names. This Document Term Matrix is the basis of a range of analysis methods.
+          </p>
+  <ul class="phase-steps">
+  <li>Set binarisation threshold interactively</li>
+  <li>Build and download sorted TTM</li>
+  <li>Run MCA cluster analysis</li>
+  <li>Compare sorted vs clustered TTM</li>
+  <li>Name and export frames</li>
+  </ul>
+  </div>
+  <div class="phase-card-footer">
+  <div class="phase-io">
+  <span class="io-chip io-in">Reviewed DTM</span>
+  <span class="io-chip io-out">Frame analysis</span>
+  </div>
+  <span class="phase-link-arrow">→</span>
+  </div>
+</a>
+</div>
+</section>
+<!-- ── Workflow ── -->
+<section class="workflow">
+<div class="workflow-inner">
+<div class="workflow-label">End-to-end workflow</div>
+<div class="workflow-flow">
+<div class="flow-step">
+<div class="flow-step-phase">Phase 1 · Step 1</div>
+<div class="flow-step-name">Initial extraction</div>
+<div class="flow-step-desc">5 random documents coded in isolated sessions to generate candidate terms</div>
+<div class="flow-step-output">→ Candidate term list</div>
+</div>
+<div class="flow-step">
+<div class="flow-step-phase">Phase 1 · Step 2</div>
+<div class="flow-step-name">Researcher review</div>
+<div class="flow-step-desc">Merge duplicates, enrich definitions with synonyms, apply scaffolding structure</div>
+<div class="flow-step-output">→ Revised typology CSV</div>
+</div>
+<div class="flow-step">
+<div class="flow-step-phase">Phase 1 · Step 3</div>
+<div class="flow-step-name">Saturation testing</div>
+<div class="flow-step-desc">New document batches tested against fixed typology until no new concepts emerge</div>
+<div class="flow-step-output">→ Saturated typology</div>
+</div>
+<div class="flow-step">
+<div class="flow-step-phase">Phase 2 · Code</div>
+<div class="flow-step-name">Full corpus coding</div>
+<div class="flow-step-desc">Every document scored against every concept — one isolated API call per document</div>
+<div class="flow-step-output">→ Raw DTM</div>
+</div>
+<div class="flow-step">
+<div class="flow-step-phase">Phase 3 · Step 1</div>
+<div class="flow-step-name">Binarisation</div>
+<div class="flow-step-desc">Scores converted to binary important / not important using fixed threshold rules</div>
+<div class="flow-step-output">→ Binary DTM</div>
+</div>
+<div class="flow-step">
+<div class="flow-step-phase">Phase 3 · Step 2</div>
+<div class="flow-step-name">Cluster analysis</d
+  iv>
+<div class="flow-step-desc">TTM construction and MCA reveals concept configurations — the frames of reference</div>
+<div class="flow-step-output">→ Frame map</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ── Footer ── -->
 <footer>
-  <div class="footer-wordmark">Correlating Resonance</div>
-  <div class="footer-meta">Frame Analysis Methodology · Built on the Anthropic API</div>
+<div class="footer-wordmark">Correlating Resonance</div>
+<div class="footer-meta">Frame Analysis Methodology · Built on the Anthropic API</div>
 </footer>
-
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadFragment('edu-header', '/edu_header.html');
+    markActiveNav();
+  });
+</script>
 </body>
 </html>

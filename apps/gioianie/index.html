@@ -1,26 +1,18 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Correlating Resonance — Phase 1: Typology Development</title>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,300;1,400&amp;family=JetBrains+Mono:wght@400;500&amp;family=Barlow:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="config.js"></script>
-
-<link href="cr-common.css" rel="stylesheet"/><link href="gioianie_index.css" rel="stylesheet"/></head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Correlating Resonance — Phase 1: Typology Development</title>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,300;1,400&amp;family=JetBrains+Mono:wght@400;500&amp;family=Barlow:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="config.js"></script>
+  <script src="/edu_common.js"></script>
+  <link href="/edu_common.css" rel="stylesheet"/>
+  <link href="gioianie_index.css" rel="stylesheet"/>
+</head>
 <body>
-<header class="cr-nav">
-<a class="cr-nav-logo" href="index.html"><em>Correlating Resonance</em></a>
-<div class="cr-phases">
-<a class="cr-phase-link current" href="gioianie_index.html">Phase 1 · Typology</a>
-<a class="cr-phase-link" href="gioianie_iterate.html">Phase 2 · Saturation</a>
-<a class="cr-phase-link" href="sanzognie.html">Phase 3 · Coding</a>
-<a class="cr-phase-link" href="corres.html">Phase 4 · Analysis</a>
-</div>
-<a class="cr-nav-home" href="index.html">Home</a>
-</header>
+<div id="edu-header" class="cr-nav"></div>
 <div class="workspace">
 <div class="callout">
 <strong>What this does</strong><br/>
@@ -71,6 +63,7 @@
 </table>
 </div>
 </div>
+
 <script>
 // ── Config ─────────────────────────────────────────────────────────
 const MODEL   = 'claude-sonnet-4-20250514';
@@ -266,108 +259,6 @@ async function runPhase1() {
   document.getElementById('run-btn').disabled = false;
 }
 
-// ── Text sanitisation ────────────────────────────────────────────────
-// Removes characters that cause LLMs to generate broken JSON
-function sanitiseText(text) {
-  return text
-    .replace(/[\u2018\u2019]/g, "'")   // smart single quotes → plain
-    .replace(/[\u201C\u201D]/g, '"')   // smart double quotes → plain
-    .replace(/[\u2013\u2014]/g, '-')   // en/em dash → hyphen
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ' ') // control chars
-    .replace(/\\/g, '/')               // backslashes → forward slash
-    .trim();
-}
-
-// ── JSON string sanitiser ────────────────────────────────────────────
-// Walks the raw text character by character. Inside JSON string values,
-// replaces literal newlines, carriage returns, and tabs with a space,
-// and removes any other bare control characters. This fixes the most
-// common failure mode: LLMs embedding literal newlines in definition
-// strings, which produces "Unterminated string" parse errors.
-function fixJSONStrings(text) {
-  let result = '';
-  let inString = false;
-  let escaped = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (escaped) {
-      result += ch;
-      escaped = false;
-      continue;
-    }
-    if (ch === '\\' && inString) {
-      result += ch;
-      escaped = true;
-      continue;
-    }
-    if (ch === '"') {
-      result += ch;
-      inString = !inString;
-      continue;
-    }
-    if (inString) {
-      const code = ch.charCodeAt(0);
-      if (ch === '\n' || ch === '\r' || ch === '\t') {
-        result += ' '; // replace literal whitespace control chars with space
-        continue;
-      }
-      if (code < 0x20) {
-        continue; // drop other control characters silently
-      }
-    }
-    result += ch;
-  }
-  return result;
-}
-
-// ── JSON repair ──────────────────────────────────────────────────────
-// Attempts to extract a valid JSON array from a potentially broken response.
-// Strategy 1: fix control chars in strings, then parse.
-// Strategy 2: find the outermost [ ] and parse that substring.
-// Strategy 3: close a truncated array at the last complete object.
-// Strategy 4: extract individual complete objects one by one.
-function repairJSON(raw) {
-  // Strategy 1: fix string-internal control chars, then parse
-  const clean = fixJSONStrings(raw.replace(/```json|```/g, '').trim());
-  try { return JSON.parse(clean); } catch (_) {}
-
-  // Strategy 2: extract outermost array
-  const start = clean.indexOf('[');
-  const end   = clean.lastIndexOf(']');
-  if (start !== -1 && end !== -1 && end > start) {
-    try { return JSON.parse(clean.slice(start, end + 1)); } catch (_) {}
-  }
-
-  // Strategy 3: response truncated mid-stream — try closing the array
-  // Find the last complete object (ends with }) and close the array there
-  const lastBrace = clean.lastIndexOf('}');
-  if (lastBrace !== -1 && start !== -1) {
-    const truncationFix = clean.slice(start, lastBrace + 1) + ']';
-    try {
-      const result = JSON.parse(truncationFix);
-      console.warn(`JSON repair recovered truncated response: ${result.length} objects`);
-      return result;
-    } catch (_) {}
-  }
-
-  // Strategy 4: extract individual complete objects
-  const objects = [];
-  const objRe = /\{[^{}]*\}/g;
-  let match;
-  while ((match = objRe.exec(clean)) !== null) {
-    try {
-      const obj = JSON.parse(match[0]);
-      if (obj.term) objects.push(obj);
-    } catch (_) {}
-  }
-  if (objects.length > 0) {
-    console.warn(`JSON repair recovered ${objects.length} objects via object extraction`);
-    return objects;
-  }
-
-  throw new Error('Could not parse or repair JSON response from API');
-}
 
 // ── Per-document extraction prompt ──────────────────────────────────
 async function extractTermsFromDoc(doc, docNum, totalDocs) {
@@ -421,6 +312,48 @@ Extract all candidate concepts from this document as a flat JSON array. Every st
   return repairJSON(response);
 }
 
+function repairJSON(raw) {
+  // Strategy 1: fix string-internal control chars, then parse
+  const clean = fixJSONStrings(raw.replace(/```json|```/g, '').trim());
+  try { return JSON.parse(clean); } catch (_) {}
+
+  // Strategy 2: extract outermost array
+  const start = clean.indexOf('[');
+  const end   = clean.lastIndexOf(']');
+  if (start !== -1 && end !== -1 && end > start) {
+    try { return JSON.parse(clean.slice(start, end + 1)); } catch (_) {}
+  }
+
+  // Strategy 3: response truncated mid-stream — try closing the array
+  // Find the last complete object (ends with }) and close the array there
+  const lastBrace = clean.lastIndexOf('}');
+  if (lastBrace !== -1 && start !== -1) {
+    const truncationFix = clean.slice(start, lastBrace + 1) + ']';
+    try {
+      const result = JSON.parse(truncationFix);
+      console.warn(`JSON repair recovered truncated response: ${result.length} objects`);
+      return result;
+    } catch (_) {}
+  }
+
+  // Strategy 4: extract individual complete objects
+  const objects = [];
+  const objRe = /\{[^{}]*\}/g;
+  let match;
+  while ((match = objRe.exec(clean)) !== null) {
+    try {
+      const obj = JSON.parse(match[0]);
+      if (obj.term) objects.push(obj);
+    } catch (_) {}
+  }
+  if (objects.length > 0) {
+    console.warn(`JSON repair recovered ${objects.length} objects via object extraction`);
+    return objects;
+  }
+
+  throw new Error('Could not parse or repair JSON response from API');
+}
+
 // ── Consolidation prompt ─────────────────────────────────────────────
 async function consolidateTerms(termsByDoc) {
   const system = `You are a research assistant applying the Correlating Resonance methodology.
@@ -459,6 +392,7 @@ Return ONLY a valid JSON array:
   const response = await callAPI(system, user, 4096);
   return repairJSON(response);
 }
+
 
 // ── API call ────────────────────────────────────────────────────────
 async function callAPI(system, user, maxTokens = 3000) {
@@ -663,10 +597,14 @@ function escHtml(str) {
     .replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;');
 }
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadFragment('edu-header', '/edu_header.html');
+    markActiveNav();
+  });
 </script>
 <nav class="cr-bottom-nav">
-<a class="cr-bottom-btn ghost" href="index.html">← Home</a>
-<div class="cr-bottom-center">Phase 1 of 4 · Typology Development</div>
+<a class="cr-bottom-btn ghost" href="/index.html">← Home</a>
+<div class="cr-bottom-center">Phase 1 of 4 · Typology Initialisation</div>
 <a class="cr-bottom-btn" href="gioianie_iterate.html">Phase 2 · Saturation →</a>
 </nav>
 </body>

@@ -220,7 +220,6 @@ window.showError = function showError(msg) {
   const el = document.getElementById('error-display');
   if (!el) {
     console.warn('showError: no #error-display element on this page');
-    alert('Error: ' + msg);
     return;
   }
   el.innerHTML =
@@ -239,7 +238,34 @@ window.formatBytes = function formatBytes(b) {
   if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)}KB`;
   return `${(b / 1024 / 1024).toFixed(1)}MB`;
 };
+// ── Fragment loader ─────────────────────────────
 
+window.loadFragment = async function loadFragment(id, path) {
+  try {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`Failed to load ${path}`);
+
+    const html = await res.text();
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  } catch (err) {
+    console.warn(err.message);
+  }
+};
+
+
+// ── Active navigation marker ─────────────────────────────
+
+window.markActiveNav = function markActiveNav() {
+  const path = window.location.pathname;
+
+  document.querySelectorAll('.main-nav a').forEach(a => {
+    const href = a.getAttribute('href');
+    if (path.startsWith(href)) {
+      a.classList.add('current');
+    }
+  });
+};
 
 /* ============================================================================
  * §E  STAGE 3 RETIREMENT — technical debt against contract §6

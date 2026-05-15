@@ -8,19 +8,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,300;1,400&amp;family=JetBrains+Mono:wght@400;500&amp;family=Barlow:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="config.js"></script>
-
-<link href="cr-common.css" rel="stylesheet"/><link href="sanzognie.css" rel="stylesheet"/></head>
+<script src="/edu_common.js"></script>
+<link href="/edu_common.css" rel="stylesheet"/>
+<link href="sanzognie.css" rel="stylesheet"/></head>
 <body>
-<header class="cr-nav">
-<a class="cr-nav-logo" href="index.html"><em>Correlating Resonance</em></a>
-<div class="cr-phases">
-<a class="cr-phase-link" href="gioianie_index.html">Phase 1 · Typology</a>
-<a class="cr-phase-link" href="gioianie_iterate.html">Phase 2 · Saturation</a>
-<a class="cr-phase-link current" href="sanzognie.html">Phase 3 · Coding</a>
-<a class="cr-phase-link" href="corres.html">Phase 4 · Analysis</a>
-</div>
-<a class="cr-nav-home" href="index.html">Home</a>
-</header>
+<div id="edu-header" class="cr-nav"></div>
 <div class="workspace">
 <div class="callout">
 <strong>What this does</strong><br/>
@@ -591,6 +583,16 @@ Code this document against every concept in the typology.`;
   return { scores, lowConf: parsed.low_confidence || [] };
 }
 
+function repairJSON(raw) {
+  const clean = fixJSONStrings(raw.replace(/```json|```/g, '').trim());
+  try { return JSON.parse(clean); } catch (_) {}
+  const s = clean.indexOf('{'), e = clean.lastIndexOf('}');
+  if (s !== -1 && e !== -1 && e > s) {
+    try { return JSON.parse(clean.slice(s, e + 1)); } catch (_) {}
+  }
+  throw new Error('Could not parse JSON response');
+}
+
 // ── DTM export ────────────────────────────────────────────────────────
 function exportDTM(rows, concepts, mode, isCheckpoint = false) {
   const isRating = mode === 'rating';
@@ -866,42 +868,6 @@ Read the PDF document above carefully and code it against every concept in the t
 
   return { scores, lowConf: parsed.low_confidence || [] };
 }
-function sanitiseText(text) {
-  return text
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/[\u2013\u2014]/g, '-')
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ' ')
-    .replace(/\\/g, '/')
-    .trim();
-}
-
-function fixJSONStrings(text) {
-  let result = '', inString = false, escaped = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (escaped) { result += ch; escaped = false; continue; }
-    if (ch === '\\' && inString) { result += ch; escaped = true; continue; }
-    if (ch === '"') { result += ch; inString = !inString; continue; }
-    if (inString) {
-      if (ch === '\n' || ch === '\r' || ch === '\t') { result += ' '; continue; }
-      if (ch.charCodeAt(0) < 0x20) continue;
-    }
-    result += ch;
-  }
-  return result;
-}
-
-function repairJSON(raw) {
-  const clean = fixJSONStrings(raw.replace(/```json|```/g, '').trim());
-  try { return JSON.parse(clean); } catch (_) {}
-  const s = clean.indexOf('{'), e = clean.lastIndexOf('}');
-  if (s !== -1 && e !== -1 && e > s) {
-    try { return JSON.parse(clean.slice(s, e + 1)); } catch (_) {}
-  }
-  throw new Error('Could not parse JSON response');
-}
-
 // ── API call ────────────────────────────────────────────────────────
 async function callAPI(system, user, maxTokens = 4096) {
   const cfg = window.CORRES_CONFIG;
@@ -940,19 +906,8 @@ async function callAPI(system, user, maxTokens = 4096) {
 }
 
 
-function csvCell(val) {
-  const s = String(val || '');
-  return (s.includes(',') || s.includes('"') || s.includes('\n'))
-    ? '"' + s.replace(/"/g, '""') + '"' : s;
-}
 
-function formatBytes(b) {
-  if (b < 1024) return `${b}B`;
-  if (b < 1024*1024) return `${(b/1024).toFixed(0)}KB`;
-  return `${(b/1024/1024).toFixed(1)}MB`;
-}
 
-function today() { return new Date().toISOString().slice(0,10); }
 
 function download(filename, content, type) {
   const blob = new Blob([content], { type });
@@ -962,23 +917,18 @@ function download(filename, content, type) {
   URL.revokeObjectURL(url);
 }
 
-function showError(msg) {
-  document.getElementById('error-display').innerHTML =
-    `<div class="error-box"><strong>Error</strong>${escHtml(msg)}</div>`;
-}
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadFragment('edu-header', '/edu_header.html');
+    markActiveNav();
+  });
 
-function clearError() { document.getElementById('error-display').innerHTML = ''; }
-
-function escHtml(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 </script>
 <nav class="cr-bottom-nav">
-<a class="cr-bottom-btn" href="gioianie_iterate.html">← Phase 2 · Saturation</a>
+<a class="cr-bottom-btn" href="/apps/gioianie/gioianie_iterate.html">← Phase 2 · Saturation</a>
 <div class="cr-bottom-center">Phase 3 of 4 · Corpus Coding</div>
-<a class="cr-bottom-btn" href="corres.html">Phase 4 · Analysis →</a>
+<a class="cr-bottom-btn" href="/apps/corres/">Phase 4 · Analysis →</a>
 </nav>
 </body>
 </html>

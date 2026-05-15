@@ -8,19 +8,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,300;1,400&amp;family=JetBrains+Mono:wght@400;500&amp;family=Barlow:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="config.js"></script>
-
-<link href="cr-common.css" rel="stylesheet"/><link href="gioianie_iterate.css" rel="stylesheet"/></head>
+<script src="/edu_common.js"></script>
+<link href="/edu_common.css" rel="stylesheet"/>
+<link href="gioianie_iterate.css" rel="stylesheet"/></head>
 <body>
-<header class="cr-nav">
-<a class="cr-nav-logo" href="index.html"><em>Correlating Resonance</em></a>
-<div class="cr-phases">
-<a class="cr-phase-link" href="gioianie_index.html">Phase 1 · Typology</a>
-<a class="cr-phase-link current" href="gioianie_iterate.html">Phase 2 · Saturation</a>
-<a class="cr-phase-link" href="sanzognie.html">Phase 3 · Coding</a>
-<a class="cr-phase-link" href="corres.html">Phase 4 · Analysis</a>
-</div>
-<a class="cr-nav-home" href="index.html">Home</a>
-</header>
+<div id="edu-header" class="cr-nav"></div>
 <div class="workspace">
 <div class="callout">
 <strong>What this does</strong><br/>
@@ -334,57 +326,6 @@ function checkReady() {
     : `Ready — ${typology.length} concepts, ${docSlots.filter(Boolean).length} document(s)`;
 }
 
-// ── Sanitise ─────────────────────────────────────────────────────────
-function sanitiseText(text) {
-  return text
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/[\u2013\u2014]/g, '-')
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ' ')
-    .replace(/\\/g, '/')
-    .trim();
-}
-
-// ── JSON repair ───────────────────────────────────────────────────────
-function fixJSONStrings(text) {
-  let result = '', inString = false, escaped = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (escaped) { result += ch; escaped = false; continue; }
-    if (ch === '\\' && inString) { result += ch; escaped = true; continue; }
-    if (ch === '"') { result += ch; inString = !inString; continue; }
-    if (inString) {
-      const code = ch.charCodeAt(0);
-      if (ch === '\n' || ch === '\r' || ch === '\t') { result += ' '; continue; }
-      if (code < 0x20) continue;
-    }
-    result += ch;
-  }
-  return result;
-}
-
-function repairJSON(raw) {
-  const clean = fixJSONStrings(raw.replace(/```json|```/g, '').trim());
-  try { return JSON.parse(clean); } catch (_) {}
-  const start = clean.indexOf('['), end = clean.lastIndexOf(']');
-  if (start !== -1 && end !== -1 && end > start) {
-    try { return JSON.parse(clean.slice(start, end + 1)); } catch (_) {}
-  }
-  const lastBrace = clean.lastIndexOf('}');
-  if (lastBrace !== -1 && start !== -1) {
-    try {
-      const result = JSON.parse(clean.slice(start, lastBrace + 1) + ']');
-      return result;
-    } catch (_) {}
-  }
-  const objects = [], objRe = /\{[^{}]*\}/g;
-  let match;
-  while ((match = objRe.exec(clean)) !== null) {
-    try { const obj = JSON.parse(match[0]); if (obj.term || obj.concept) objects.push(obj); } catch (_) {}
-  }
-  if (objects.length > 0) return objects;
-  throw new Error('Could not parse or repair JSON response');
-}
 
 // ── Pipeline UI ───────────────────────────────────────────────────────
 function buildPipeline(docs) {
@@ -522,6 +463,30 @@ Code this document against the typology. Flag any genuinely new concepts not cap
   return repairJSON(response);
 }
 
+function repairJSON(raw) {
+  const clean = fixJSONStrings(raw.replace(/```json|```/g, '').trim());
+  try { return JSON.parse(clean); } catch (_) {}
+  const start = clean.indexOf('['), end = clean.lastIndexOf(']');
+  if (start !== -1 && end !== -1 && end > start) {
+    try { return JSON.parse(clean.slice(start, end + 1)); } catch (_) {}
+  }
+  const lastBrace = clean.lastIndexOf('}');
+  if (lastBrace !== -1 && start !== -1) {
+    try {
+      const result = JSON.parse(clean.slice(start, lastBrace + 1) + ']');
+      return result;
+    } catch (_) {}
+  }
+  const objects = [], objRe = /\{[^{}]*\}/g;
+  let match;
+  while ((match = objRe.exec(clean)) !== null) {
+    try { const obj = JSON.parse(match[0]); if (obj.term || obj.concept) objects.push(obj); } catch (_) {}
+  }
+  if (objects.length > 0) return objects;
+  throw new Error('Could not parse or repair JSON response');
+}
+
+
 // ── Show results ──────────────────────────────────────────────────────
 function showResults() {
   const allNew = allResults.flatMap(r => (r.newConcepts || []).map(c => ({ ...c, sourceDoc: r.docName })));
@@ -642,13 +607,7 @@ function exportNewConcepts(newConcepts) {
   download(`CR_Phase2_NewConcepts_${today()}.csv`, lines.join('\n'), 'text/csv');
 }
 
-function csvCell(val) {
-  const s = String(val || '');
-  if (s.includes(',') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g, '""') + '"';
-  return s;
-}
 
-function today() { return new Date().toISOString().slice(0, 10); }
 
 function download(filename, content, type) {
   const blob = new Blob([content], { type });
@@ -658,22 +617,13 @@ function download(filename, content, type) {
   URL.revokeObjectURL(url);
 }
 
-function showError(msg) {
-  document.getElementById('error-display').innerHTML =
-    `<div class="error-box"><strong>Error</strong>${escHtml(msg)}</div>`;
-}
-
-function clearError() {
-  document.getElementById('error-display').innerHTML = ''; }
-
-function escHtml(str) {
-  return String(str || '')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
 // ── Init ─────────────────────────────────────────────────────────────
 checkReady();
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadFragment('edu-header', '/edu_header.html');
+    markActiveNav();
+  });
+
 </script>
 <nav class="cr-bottom-nav">
 <a class="cr-bottom-btn" href="gioianie_index.html">← Phase 1 · Typology</a>
